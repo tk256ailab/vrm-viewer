@@ -20,13 +20,18 @@ Thumbs.db
 *.temp
 *.log
 
-# Node.js (if you add build tools later)
+# Node.js
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Build outputs (if you add build process later)
+# Test output
+test-results/
+playwright-report/
+coverage/
+
+# Build outputs
 dist/
 build/
 
@@ -42,5 +47,8 @@ build/
 *.bak
 *.orig
 
-# Documentation drafts (not for repository)
-qiita_article.md
+# VRM/VRMA user files (except bundled samples)
+*.vrm
+*.vrma
+!VRM/sample.vrm
+!VRMA/*.vrma
