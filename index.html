@@ -303,6 +303,25 @@
 			.controls .face-row input[type='range']:disabled {
 				opacity: 0.45;
 			}
+
+			/* --- Features tab --- */
+			.control-section {
+				background: rgba(255, 255, 255, 0.05);
+				padding: 10px;
+				border-radius: 8px;
+				display: flex;
+				flex-direction: column;
+				gap: 8px;
+			}
+			.control-section h3 {
+				margin: 0;
+				font-size: 14px;
+				border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+				padding-bottom: 5px;
+			}
+			.features-section-col { display: flex; flex-direction: column; gap: 5px; }
+			.features-label { font-size: 11px; }
+			.features-toggle-label { font-size: 11px; display: flex; align-items: center; gap: 5px; }
 		</style>
 	</head>
 
@@ -310,6 +329,7 @@
 		<button id="panelToggleBtn" title="Hide controls" aria-expanded="true" aria-controls="controlsPanel">☰</button>
 		<div class="controls" id="controlsPanel">
 			<div class="tab-bar">
+				<button id="tabFeaturesBtn" class="tab-btn">Features</button>
 				<button id="tabAnimationBtn" class="tab-btn active">Animation</button>
 				<button id="tabPoseBtn" class="tab-btn">Pose</button>
 				<button id="tabFaceBtn" class="tab-btn">Face</button>
@@ -353,6 +373,25 @@
 				<h4 class="bone-group-title">Look At</h4>
 				<div id="lookAtSliders"></div>
 				<label class="inline-toggle"><input type="checkbox" id="followMouseToggle" /> Follow Mouse</label>
+			</div>
+
+			<div id="featuresPanel" class="tab-panel" hidden>
+				<div class="control-section">
+					<h3>Lighting</h3>
+					<div class="features-section-col">
+						<label for="dirLightSlider" class="features-label">Directional Light: <span id="dirLightVal">3.0</span></label>
+						<input type="range" id="dirLightSlider" min="0" max="10" step="0.1" value="3.0">
+						<label for="ambLightSlider" class="features-label">Ambient Light: <span id="ambLightVal">1.0</span></label>
+						<input type="range" id="ambLightSlider" min="0" max="5" step="0.1" value="1.0">
+					</div>
+				</div>
+				<div class="control-section">
+					<h3>Behaviors</h3>
+					<div class="features-section-col">
+						<label class="features-toggle-label"><input type="checkbox" id="standbyToggle" checked> Standby Motion</label>
+						<label class="features-toggle-label"><input type="checkbox" id="blinkToggle" checked> Auto Blinking</label>
+					</div>
+				</div>
 			</div>
 
 			<div class="status" id="status">VRMモデルを読み込み中...</div>
@@ -1498,17 +1537,23 @@
 				}
 			}
 
+			const tabFeaturesBtn = document.getElementById('tabFeaturesBtn');
+			const featuresPanel = document.getElementById('featuresPanel');
+
 			function setActiveTab(tabName) {
 				const wasTab = activeTab;
 				activeTab = tabName;
-				isEditMode = tabName !== 'animation';
+				isEditMode = tabName === 'pose' || tabName === 'face';
 
 				tabAnimationBtn.classList.toggle('active', tabName === 'animation');
 				tabPoseBtn.classList.toggle('active', tabName === 'pose');
 				tabFaceBtn.classList.toggle('active', tabName === 'face');
+				if (tabFeaturesBtn) tabFeaturesBtn.classList.toggle('active', tabName === 'features');
+
 				animationPanel.hidden = tabName !== 'animation';
 				posePanel.hidden = tabName !== 'pose';
 				facePanel.hidden = tabName !== 'face';
+				if (featuresPanel) featuresPanel.hidden = tabName !== 'features';
 
 				if (isEditMode) {
 					freezeAnimationForEditing();
@@ -1543,10 +1588,12 @@
 				requestAnimationFrame( animate );
 
 				const deltaTime = clock.getDelta();
+				const time = clock.elapsedTime;
 
 				// Mixer first, then vrm.update() (which copies normalized bones onto the
 				// raw skeleton) so animation/pose-slider/gizmo writes all land in the same
 				// frame that gets rendered, instead of showing up one frame late.
+				updateStandbyAndBlink(deltaTime, time);
 				if ( currentMixer ) {
 					currentMixer.update( deltaTime );
 				}
