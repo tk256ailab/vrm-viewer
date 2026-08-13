@@ -1,0 +1,76 @@
+name: Automated Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # -------------------------------------------------------------------------
+  # Guard: verify deployment prerequisites are satisfied on the target branch.
+  # This blocks any PR that adds src/*.js ES modules (PR #8) from being merged
+  # before the .nojekyll file is present (PR #9). Without .nojekyll, GitHub
+  # Pages' legacy Jekyll build may not serve the src/ modules correctly.
+  # -------------------------------------------------------------------------
+  prerequisites:
+    name: Check deployment prerequisites
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout target branch (base)
+        uses: actions/checkout@v4
+        with:
+          # For PRs check the base branch, not the PR head, so the guard fires
+          # even if the PR itself doesn't touch .nojekyll.
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+
+      - name: Verify .nojekyll exists (required for GitHub Pages + ES modules)
+        run: |
+          if [ ! -f ".nojekyll" ]; then
+            echo "::error file=.nojekyll::MISSING .nojekyll — GitHub Pages will run Jekyll and may"
+            echo "::error file=.nojekyll::fail to serve src/*.js ES modules with the correct Content-Type."
+            echo "::error file=.nojekyll::Merge PR #9 (chore/nojekyll-github-pages) before this PR."
+            exit 1
+          fi
+          echo "✅ .nojekyll present — GitHub Pages will serve static files directly."
+
+      - name: Verify src/ modules exist when index.html imports them
+        run: |
+          if grep -q 'vrm-viewer/' index.html && [ ! -d "src" ]; then
+            echo "::error::index.html references vrm-viewer/* importmap entries but src/ directory is missing."
+            exit 1
+          fi
+          echo "✅ src/ directory present (or not yet required)."
+
+  test:
+    name: Unit + E2E tests
+    needs: prerequisites
+    timeout-minutes: 25
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm ci
+
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps chromium
+
+    - name: Run Sanity Tests (Vitest)
+      run: npm run test:sanity
+
+    - name: Run E2E Tests (Playwright)
+      run: npm run test:e2e
+
+    - uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: test-results
+        path: test-results/
+        retention-days: 7
