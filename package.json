@@ -1,0 +1,29 @@
+{
+  "name": "vrm-viewer",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A web-based VRM model viewer with VRMA animation support built using Three.js and three-vrm.",
+  "main": "index.html",
+  "scripts": {
+    "test": "vitest run --config vitest.config.js && playwright test",
+    "test:sanity": "vitest run --config vitest.config.js",
+    "test:e2e": "playwright test",
+    "serve": "serve ."
+  },
+  "keywords": [
+    "vrm",
+    "vrma",
+    "threejs",
+    "three-vrm",
+    "3d",
+    "avatar"
+  ],
+  "author": "TK256 / Ming2k8-Coder",
+  "license": "AGPL-3.0-only",
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "jsdom": "^25.0.1",
+    "serve": "^14.2.4",
+    "vitest": "^2.1.8"
+  }
+}
