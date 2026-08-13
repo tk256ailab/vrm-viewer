@@ -333,9 +333,13 @@
 			</div>
 
 			<div id="posePanel" class="tab-panel" hidden>
-				<div>
-					<button id="resetPoseBtn">Reset Pose</button>
-					<label class="inline-toggle"><input type="checkbox" id="handlesToggle" checked /> 3D Bone Handles</label>
+				<div class="pose-top-bar">
+					<button id="resetPoseBtn"><span class="lang-en">Reset Pose</span><span class="lang-ja">ポーズリセット</span></button>
+					<select id="poseModeSelect" class="pose-mode-select" title="Target pose preset for reset">
+						<option value="dynamicA">Dynamic A-Pose (Human Standing)</option>
+						<option value="rigidT">Rigid T-Pose (Default Rest)</option>
+					</select>
+					<label class="inline-toggle"><input type="checkbox" id="handlesToggle" checked /> <span class="lang-en">3D Handles</span><span class="lang-ja">3Dハンドル</span></label>
 				</div>
 				<div id="poseSliders"></div>
 				<details class="detail-bones">
@@ -397,6 +401,7 @@
 			const poseSlidersContainer = document.getElementById('poseSliders');
 			const poseSlidersDetailContainer = document.getElementById('poseSlidersDetail');
 			const resetPoseBtn = document.getElementById('resetPoseBtn');
+			const poseModeSelect = document.getElementById('poseModeSelect');
 			const handlesToggle = document.getElementById('handlesToggle');
 			const expressionSlidersContainer = document.getElementById('expressionSliders');
 			const lookAtSlidersContainer = document.getElementById('lookAtSliders');
@@ -1093,11 +1098,25 @@
 				if (refs) refs.readouts[axis].textContent = `${Math.round(deg)}°`;
 			});
 
-			resetPoseBtn.addEventListener('click', () => {
+			const poseModeSelect = document.getElementById('poseModeSelect');
+
+			function applyPoseReset() {
 				if (!currentVrm) return;
 				currentVrm.humanoid.resetNormalizedPose();
+				
+				if (poseModeSelect && poseModeSelect.value === 'rigidT') {
+					if (proceduralIdleToggle) proceduralIdleToggle.checked = false;
+				} else {
+					if (proceduralIdleToggle) proceduralIdleToggle.checked = true;
+				}
+				
 				syncAllSliders();
-			});
+			}
+
+			resetPoseBtn.addEventListener('click', applyPoseReset);
+			if (poseModeSelect) {
+				poseModeSelect.addEventListener('change', applyPoseReset);
+			}
 
 			// --- Viewport gizmo (TransformControls), attached to the selected bone ---
 			const transformControls = new TransformControls(camera, renderer.domElement);
