@@ -8,6 +8,25 @@
 			content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
 		/>
 		<style>
+			.lang-switch {
+				position: absolute;
+				top: 10px;
+				right: 10px;
+				z-index: 1000;
+				color: white;
+				background: #333;
+				padding: 5px 10px;
+				text-decoration: none;
+				border-radius: 4px;
+				font-family: sans-serif;
+				font-size: 12px;
+				cursor: pointer;
+				border: none;
+			}
+
+			:lang(en) .lang-ja { display: none !important; }
+			:lang(ja) .lang-en { display: none !important; }
+
 			body {
 				margin: 0;
 				font-family: 'Inter', sans-serif; /* Use Inter font */
@@ -304,58 +323,94 @@
 				opacity: 0.45;
 			}
 		</style>
+	
+		<script>
+			// Auto-detect language
+			if (!sessionStorage.getItem('langSet')) {
+				document.documentElement.lang = navigator.language.startsWith('ja') ? 'ja' : 'en';
+			} else {
+				document.documentElement.lang = sessionStorage.getItem('langSet');
+			}
+
+			function toggleLang() {
+				const nextLang = document.documentElement.lang === 'ja' ? 'en' : 'ja';
+				document.documentElement.lang = nextLang;
+				sessionStorage.setItem('langSet', nextLang);
+			}
+		</script>
 	</head>
 
 	<body>
+		<button class="lang-switch" onclick="toggleLang()"><span class="lang-en">日本語</span><span class="lang-ja">English</span></button>
 		<button id="panelToggleBtn" title="Hide controls" aria-expanded="true" aria-controls="controlsPanel">☰</button>
 		<div class="controls" id="controlsPanel">
 			<div class="tab-bar">
-				<button id="tabAnimationBtn" class="tab-btn active">Animation</button>
-				<button id="tabPoseBtn" class="tab-btn">Pose</button>
-				<button id="tabFaceBtn" class="tab-btn">Face</button>
+				<button id="tabFeaturesBtn" class="tab-btn"><span class="lang-en">Features</span><span class="lang-ja">機能</span></button>
+				<button id="tabAnimationBtn" class="tab-btn active"><span class="lang-en">Animation</span><span class="lang-ja">アニメーション</span></button>
+				<button id="tabPoseBtn" class="tab-btn"><span class="lang-en">Pose</span><span class="lang-ja">ポーズ</span></button>
+				<button id="tabFaceBtn" class="tab-btn"><span class="lang-en">Face</span><span class="lang-ja">顔</span></button>
 			</div>
 
 			<div id="animationPanel" class="tab-panel">
 				<div>
-					<label>VRM Model:</label>
+					<label><span class="lang-en">VRM Model:</span><span class="lang-ja">VRMモデル:</span></label>
 					<span id="vrmName">sample.vrm</span>
-					<button id="openFileBtn">Open .vrm / .vrma…</button>
+					<button id="openFileBtn"><span class="lang-en">Open .vrm / .vrma...</span><span class="lang-ja">ファイルを開く (.vrm / .vrma)...</span></button>
 					<input type="file" id="filePicker" accept=".vrm,.vrma" multiple hidden />
 				</div>
 				<div id="vrmaButtons">
-					<label>VRMA Animations:</label>
+					<label><span class="lang-en">VRMA Animations:</span><span class="lang-ja">VRMAアニメーション:</span></label>
 				</div>
 				<div>
-					<button id="playBtn" disabled>Play</button>
-					<button id="pauseBtn" disabled>Pause</button>
-					<button id="stopBtn" disabled>Stop</button>
+					<button id="playBtn" disabled><span class="lang-en">Play</span><span class="lang-ja">再生</span></button>
+					<button id="pauseBtn" disabled><span class="lang-en">Pause</span><span class="lang-ja">一時停止</span></button>
+					<button id="stopBtn" disabled><span class="lang-en">Stop</span><span class="lang-ja">停止</span></button>
 				</div>
 			</div>
 
 			<div id="posePanel" class="tab-panel" hidden>
 				<div>
-					<button id="resetPoseBtn">Reset Pose</button>
-					<label class="inline-toggle"><input type="checkbox" id="handlesToggle" checked /> 3D Bone Handles</label>
+					<button id="resetPoseBtn"><span class="lang-en">Reset Pose</span><span class="lang-ja">ポーズリセット</span></button>
+					<label class="inline-toggle"><input type="checkbox" id="handlesToggle" checked /> <span class="lang-en">3D Bone Handles</span><span class="lang-ja">3Dボーンハンドル</span></label>
 				</div>
 				<div id="poseSliders"></div>
 				<details class="detail-bones">
-					<summary>指・詳細ボーンを表示 (fingers / detail bones)</summary>
+					<summary><span class="lang-en">Show fingers / detail bones</span><span class="lang-ja">指・詳細ボーンを表示</span></summary>
 					<div id="poseSlidersDetail"></div>
 				</details>
 			</div>
 
 			<div id="facePanel" class="tab-panel" hidden>
 				<div>
-					<button id="resetFaceBtn">Reset Face</button>
+					<button id="resetFaceBtn"><span class="lang-en">Reset Face</span><span class="lang-ja">表情リセット</span></button>
 				</div>
-				<h4 class="bone-group-title">Expressions</h4>
+				<h4 class="bone-group-title"><span class="lang-en">Expressions</span><span class="lang-ja">表情</span></h4>
 				<div id="expressionSliders"></div>
-				<h4 class="bone-group-title">Look At</h4>
+				<h4 class="bone-group-title"><span class="lang-en">Look At</span><span class="lang-ja">視線移動</span></h4>
 				<div id="lookAtSliders"></div>
-				<label class="inline-toggle"><input type="checkbox" id="followMouseToggle" /> Follow Mouse</label>
+				<label class="inline-toggle"><input type="checkbox" id="followMouseToggle" /> <span class="lang-en">Follow Mouse</span><span class="lang-ja">マウス追従</span></label>
 			</div>
 
-			<div class="status" id="status">VRMモデルを読み込み中...</div>
+			<div id="featuresPanel" class="tab-panel" hidden>
+				<div class="control-section">
+					<h3><span class="lang-en">Lighting</span><span class="lang-ja">ライティング</span></h3>
+					<div class="features-section-col">
+						<label for="dirLightSlider" class="features-label"><span class="lang-en">Directional Light:</span><span class="lang-ja">平行光源:</span> <span id="dirLightVal">3.0</span></label>
+						<input type="range" id="dirLightSlider" min="0" max="10" step="0.1" value="3.0">
+						<label for="ambLightSlider" class="features-label"><span class="lang-en">Ambient Light:</span><span class="lang-ja">環境光:</span> <span id="ambLightVal">1.0</span></label>
+						<input type="range" id="ambLightSlider" min="0" max="5" step="0.1" value="1.0">
+					</div>
+				</div>
+				<div class="control-section">
+					<h3><span class="lang-en">Behaviors</span><span class="lang-ja">振る舞い</span></h3>
+					<div class="features-section-col">
+						<label class="features-toggle-label"><input type="checkbox" id="standbyToggle" checked> <span class="lang-en">Standby Motion</span><span class="lang-ja">待機モーション</span></label>
+						<label class="features-toggle-label"><input type="checkbox" id="blinkToggle" checked> <span class="lang-en">Auto Blinking</span><span class="lang-ja">自動まばたき</span></label>
+					</div>
+				</div>
+			</div>
+
+			<div class="status" id="status"><span class="lang-en">Loading VRM model...</span><span class="lang-ja">VRMモデルを読み込み中...</span></div>
 		</div>
 
 		<script type="importmap">
@@ -382,7 +437,10 @@
 			const playBtn = document.getElementById('playBtn');
 			const pauseBtn = document.getElementById('pauseBtn');
 			const stopBtn = document.getElementById('stopBtn');
-			const statusDiv = document.getElementById('status');
+			// Helper for bilingual status messages
+			function setStatus(enText, jaText) {
+				statusDiv.innerHTML = `<span class="lang-en">${enText}</span><span class="lang-ja">${jaText || enText}</span>`;
+			}
 			const vrmNameSpan = document.getElementById('vrmName');
 			const openFileBtn = document.getElementById('openFileBtn');
 			const filePicker = document.getElementById('filePicker');
